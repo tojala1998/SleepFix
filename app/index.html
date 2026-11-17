@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
+  <title>SleepFix</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="page-header">
+      <div class="brand">
+        <svg class="moon" width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><path d="M53 11a29 29 0 1 0 12 44A31 31 0 0 1 53 11Z" fill="currentColor"/><path d="M61 10v12M55 16h12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+        <div><h1>SleepFix</h1><p class="subtitle">Let the screen stay asleep.</p></div>
+      </div>
+      <div class="header-meta"><span id="preview-label" class="preview-label" hidden>INTERACTIVE PREVIEW</span><span class="version">v0.1.0</span></div>
+    </header>
+
+    <section class="status-card" aria-labelledby="status-title">
+      <div class="status-copy">
+        <div class="eyebrow">SLEEPFIX SERVICE</div>
+        <h2 id="status-title" aria-live="polite">Checking status…</h2>
+        <p id="status-description">Connecting to Homebrew Channel.</p>
+      </div>
+      <div id="status-badge" class="status-badge unknown"><span class="status-dot"></span><span id="status-badge-text">Checking</span></div>
+    </section>
+
+    <div class="controls-grid">
+      <section class="control-card" aria-labelledby="fix-heading">
+        <div class="card-heading"><h2 id="fix-heading">Screen-off protection</h2><span class="card-number">01</span></div>
+        <p class="card-description">Prevent the one-minute sleep timer warning from waking the screen.</p>
+        <button id="fix-toggle" class="toggle-row" type="button" role="switch" aria-checked="false" aria-describedby="fix-note" data-nav disabled>
+          <span>SleepFix enabled</span><span class="switch" aria-hidden="true"><span class="switch-thumb"></span></span>
+        </button>
+        <p id="fix-note" class="small-note">The sleep timer still turns the TV off normally.</p>
+        <div class="service-actions">
+          <button id="start-button" class="button primary" type="button" data-nav disabled><span aria-hidden="true">▶</span> Start service</button>
+          <button id="stop-button" class="button secondary" type="button" data-nav disabled><span aria-hidden="true">■</span> Stop service</button>
+        </div>
+      </section>
+
+      <section class="control-card" aria-labelledby="boot-heading">
+        <div class="card-heading"><h2 id="boot-heading">Startup</h2><span class="card-number">02</span></div>
+        <p class="card-description">Apply SleepFix automatically after the TV finishes starting Homebrew Channel.</p>
+        <button id="boot-toggle" class="toggle-row" type="button" role="switch" aria-checked="false" aria-describedby="boot-note" data-nav disabled>
+          <span>Launch at boot</span><span class="switch" aria-hidden="true"><span class="switch-thumb"></span></span>
+        </button>
+        <p id="boot-note" class="small-note">This setting is separate from the current session.</p>
+        <div class="startup-note"><span class="note-mark" aria-hidden="true">i</span><p>Stopping SleepFix restores normal timer behavior. LG’s timer service keeps running.</p></div>
+      </section>
+    </div>
+
+    <section class="details" aria-label="Connection and compatibility">
+      <div class="detail"><span class="detail-label">Homebrew access</span><strong id="root-detail">Checking…</strong></div>
+      <div class="detail"><span class="detail-label">Compatibility</span><strong id="support-detail">Checking…</strong></div>
+      <div class="detail"><span class="detail-label">TV timer service</span><strong id="daemon-detail">Checking…</strong></div>
+      <button id="refresh-button" class="button text-button" type="button" data-nav><span aria-hidden="true">↻</span> Refresh status</button>
+    </section>
+
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <footer><span>Built for verified firmware · Root required</span><span>Use the pointer or arrow keys · Back to exit</span></footer>
+  </main>
+
+  <div id="confirm-overlay" class="dialog-overlay" hidden>
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+      <div class="eyebrow">TIMER SERVICE RESTART</div>
+      <h2 id="confirm-title">Start SleepFix?</h2>
+      <p id="confirm-description">Turn off active sleep timers and scheduled recordings before continuing. Restarting the timer service can reset them.</p>
+      <p id="confirm-extra" class="dialog-note"></p>
+      <div class="dialog-actions"><button id="cancel-button" class="button secondary" type="button" data-nav>Cancel</button><button id="confirm-button" class="button primary" type="button" data-nav>Continue</button></div>
+    </section>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

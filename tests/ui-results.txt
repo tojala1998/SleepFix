@@ -1,0 +1,16 @@
+PASS launch only reads status and uses fixed HBC command
+PASS already running Start can adopt without timer confirmation
+PASS Stop confirms, preserves boot preference, and reads actual result
+PASS Cancel leaves TV unchanged
+PASS boot toggle is independent and needs no restart confirmation
+PASS unsupported executable blocks applying but permits owned rollback
+PASS partial patched process without mount still permits Stop
+PASS controller root rejection displays its explanation
+PASS bad status becomes Unknown rather than Stopped
+PASS timeout keeps mutation locked until verified operation completion
+PASS completed controller failure remains visible after status readback
+PASS bridge exception after dispatch is uncertain until actual status returns
+PASS missing native bridge cannot pretend to be connected
+PASS explicit preview never calls native Luna service
+PASS remote Back cancels dialog without executing action
+15 UI/bridge checks passed. No physical-TV test is claimed.

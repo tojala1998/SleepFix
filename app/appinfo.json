@@ -1,0 +1,13 @@
+{
+  "id": "io.github.tojala1998.sleepfix",
+  "version": "0.1.0",
+  "vendor": "Tyler Ojala",
+  "type": "web",
+  "main": "index.html",
+  "title": "SleepFix",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "appDescription": "Keep the screen off during the sleep timer warning on supported rooted LG TVs.",
+  "resolution": "1920x1080",
+  "uiRevision": "2"
+}

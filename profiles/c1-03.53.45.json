@@ -1,0 +1,15 @@
+{
+  "profile": "c1-03.53.45-tested-executable",
+  "testedModel": "LG C1",
+  "reportedFirmware": "03.53.45",
+  "target": "/usr/sbin/tv-reservation-agent",
+  "size": 953888,
+  "originalSha256": "6bee2e9fbe9836addede0a3f2e33342fb1914ff5f1793d2bffa030bfc0e38330",
+  "patchedSha256": "23bb2fe19594d1b42d4dfdbcf3d40b675f225ac15990b9d2a5cb2c0b571cd40f",
+  "fileOffset": 199070,
+  "fileOffsetHex": "0x3099e",
+  "beforeHex": "4df0bdfb",
+  "afterHex": "00bf00bf",
+  "instruction": "Replace one Thumb-2 branch to requestTurnOnScreen with two Thumb NOPs",
+  "scope": "Only the full original SHA-256 is accepted; model/firmware labels alone never authorize patching."
+}

@@ -1,0 +1,27 @@
+# Prepared for webosbrew/apps-repo/packages/. Publish the source/release first.
+title: SleepFix
+shortDescription: Keeps the screen off when the sleep timer shows its warning.
+iconUri: https://raw.githubusercontent.com/tojala1998/SleepFix/main/app/icon160.png
+manifestUrl: https://github.com/tojala1998/SleepFix/releases/latest/download/io.github.tojala1998.sleepfix.manifest.json
+category: system
+pool: main
+description: |
+  Prevents the sleep timer's one-minute warning from requesting Screen On
+  while content continues playing with Screen Off enabled.
+
+  Requires a rooted TV and Homebrew Channel with root access.
+
+  Initially supports the exact tv-reservation-agent executable tested on
+  the LG C1 running firmware 03.53.45. Other executable versions are refused.
+  The entire executable is checked with SHA-256 before and after patching.
+
+  Includes an enable toggle, Start service and Stop service controls,
+  a running-status display, and a separate launch-at-boot setting.
+  Stop restores LG's original timer service; it does not disable sleep timers.
+
+  The patched copy is generated locally from the TV's own executable and
+  applied using a reversible bind mount. System partitions are not written.
+  No LG executable is included in the package or public source.
+
+  Turn off active timers and recordings before starting or stopping the fix.
+  Before uninstalling, stop SleepFix and switch off launch at boot.
