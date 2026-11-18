@@ -57,10 +57,10 @@ h1 { font-size: 48px; letter-spacing: -.9px; line-height: 1.05; font-weight: 700
 .detail strong { display: block; margin-top: 6px; font-size: 18px; font-weight: 400; color: #c5d5e3; overflow-wrap: break-word; }
 .text-button { font-size: 18px; font-weight: 600; min-height: 49px; background: transparent; border: 1px solid #34465a; color: #a4c9ea; padding: 8px 14px; }
 .text-button span { font-size: 23px; }
-.notice { border-left: 4px solid #6699c1; padding: 10px 16px; margin-top: 15px; background: #202f43; color: #cdddec; font-size: 18px; overflow-wrap: anywhere; }
+.notice { border-left: 4px solid #6699c1; padding: 10px 16px; margin-top: 15px; background: #202f43; color: #cdddec; font-size: 18px; word-break: break-word; }
 .notice.error { border-color: #e58b8b; background: #34252d; color: #ffdfdf; }
 footer { display: flex; justify-content: space-between; color: #677c90; font-size: 15px; padding: 28px 9px 0; }
-.dialog-overlay { display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(0, 4, 9, .87); padding: 35px; }
+.dialog-overlay { display: flex; align-items: center; justify-content: center; position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0, 4, 9, .87); padding: 35px; }
 .dialog { background: #1b2b3b; border: 1px solid #526b83; width: 790px; border-radius: 20px; padding: 45px; }
 .dialog h2 { font-size: 37px; margin-bottom: 15px; }
 .dialog > p { color: #c8d4e1; font-size: 22px; line-height: 1.55; }
@@ -101,3 +101,10 @@ footer { display: flex; justify-content: space-between; color: #677c90; font-siz
  .detail { min-width: 35%; }
  footer { display: none; }
 }
+
+/* Chromium 79 (webOS 6) predates flexbox gap support. Keep explicit spacers. */
+.service-actions .button + .button { margin-left: 14px; }
+.dialog-actions .button + .button { margin-left: 16px; }
+.setting-heading > .toggle-row { margin-left: 26px; }
+.details > .detail + .detail { margin-left: 16px; }
+@media (max-width: 680px) { .setting-heading > .toggle-row { margin-left: 0; } }
