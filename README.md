@@ -1,218 +1,97 @@
-# SleepFix for webOS
+# LGFixes — standalone LG C1 webOS patches
 
-A small Homebrew app that keeps a supported LG TV's sleep-timer warning from
-requesting Screen On while audio continues with **Screen Off** enabled.
+Two small, reversible **root SSH fixes** for a rooted LG C1 running webOS 6. Tested on one LG C1 reporting firmware **03.53.45**. They address different problems and can be installed independently.
 
-**Version 0.1.1 is a first GUI test build.** The underlying four-byte patch and
-its automatic boot application were tested on Tyler's LG C1. The new IPK's
-installation, remote control, and Homebrew Channel integration still need a
-physical-TV test before this app is submitted to the store.
+| Fix | What it does | Verified scope |
+| --- | --- | --- |
+| [SleepFix 1.0.0](lgc1-sleepfix-1.0.0/README.md) | Stops the native sleep timer's one-minute warning from explicitly waking the OLED panel while Screen Off is enabled. Leaves the warning and timer expiry/shutdown paths intact. | Exact supported `/usr/sbin/tv-reservation-agent` SHA-256 only; physically tested on one C1. |
+| [Clean Wake 1.2](lgc1-clean-wake/README.txt) | Suppresses the plain app-name / Loading text while waking directly to YouTube, Netflix, Prime Video, or Disney+. Uses the existing black CoverUI background. | Tested on one C1. Not a power-management or app-loading speed tweak. |
 
-## Controls
+**Source only.** This repository contains no LG proprietary executables or QML, no GUI app or IPK, and no Homebrew Store submission. Each installer works from the TV's own verified files, uses reversible bind mounts over the runtime path, and stores its changes under `/var/lib/webosbrew/`. **Neither fix writes to protected firmware partitions.**
 
-| Control | Result |
-| --- | --- |
-| SleepFix enabled | Applies or removes the fix for the current session. |
-| Start service | Generates the verified patch if necessary, applies its overlay, and loads it. Also adopts a recognized existing SSH boot setup. |
-| Stop service | Removes the overlay and restores the original LG timer service. The launch-at-boot preference stays unchanged. |
-| Running status | Checks the mounted file, running executable hash, and systemd service state. It does not infer success from a saved preference. |
-| Launch at boot | Silently reapplies the fix on future full boots through Homebrew Channel. Changing this setting does not immediately start or stop the fix. |
+## Requirements
 
-The main switch and Start/Stop buttons operate the same fix. There is no extra
-resident SleepFix daemon: the app controls the existing reservation agent.
-The native sleep timer and final power-off remain available.
+- Rooted LG C1 with root SSH access and Homebrew Channel startup hooks for optional persistence.
+- Windows PowerShell with `scp`/`ssh` (or another SSH/SCP client).
+- SleepFix: the **exact** audited 953,888-byte LG reservation-agent binary, identified by its full SHA-256, not merely model or firmware version. Installer refuses unknown hashes.
+- Clean Wake: the expected `StartUpUI.qml` structure and `/usr/bin/node` on the TV. Patch builder refuses unexpected layouts or foreign overlays.
 
-## Requirements and scope
+These are narrowly tested changes, not universal firmware patches. **Do not overwrite system partitions or force-unmount unknown overlays.** Keep an SSH connection available for diagnostics and rollback.
 
-- Rooted TV with Homebrew Channel root access. Integration targets its 0.7.3
-  `/exec` interface.
-- The **exact** `tv-reservation-agent` build tested on an LG C1 with reported
-  firmware **03.53.45**. This is not a promise that every C1 or webOS 6 build
-  is supported.
-- A root command context in the same mount namespace as PID 1. The app refuses
-  service mutations in a separate namespace; root SSH can be used instead.
-- Standard tools already used by the original controller, including `flock`,
-  `sha256sum`, `systemctl`, `mount`, `umount`, `dd`, and `od`.
+## Get the source and transfer to the TV
 
-Compatibility is authorized by the complete original SHA-256:
-
-```text
-6bee2e9fbe9836addede0a3f2e33342fb1914ff5f1793d2bffa030bfc0e38330
-```
-
-The expected patched SHA-256 is:
-
-```text
-23bb2fe19594d1b42d4dfdbcf3d40b675f225ac15990b9d2a5cb2c0b571cd40f
-```
-
-The IPK and this source tree contain no LG executable. The app copies and
-patches the TV's own verified executable in writable storage. It does not
-write to the system executable or flash partitions. No network connection is
-needed while using the app, and the app sends no telemetry.
-
-## Install over SSH from Windows
-
-Download `io.github.tojala1998.sleepfix_0.1.1_all.ipk`, then run in PowerShell:
+Choose **Code → Download ZIP** on this GitHub repository and extract it, or clone the repo. From **local Windows PowerShell** (replace the local folder and `TV_IP` as needed):
 
 ```powershell
-New-Item -ItemType Directory -Force "C:\Tools\LG-C1\SleepFix" | Out-Null
-Copy-Item "$env:USERPROFILE\Downloads\io.github.tojala1998.sleepfix_0.1.1_all.ipk" "C:\Tools\LG-C1\SleepFix\"
-scp "C:\Tools\LG-C1\SleepFix\io.github.tojala1998.sleepfix_0.1.1_all.ipk" root@192.168.0.166:/tmp/
-ssh root@192.168.0.166
+# From the directory where you extracted or cloned this repository:
+scp -r .\lgc1-clean-wake root@TV_IP:/tmp/
+scp -r .\lgc1-sleepfix-1.0.0 root@TV_IP:/tmp/
+ssh root@TV_IP
 ```
 
-At the TV's `root@LGwebOSTV` prompt:
+Run **only the fix you want**. Commands below run at the **TV's root SSH prompt**, not in Windows PowerShell.
+
+## Clean Wake — install, test, persist
 
 ```sh
-luna-send -i -f 'luna://com.webos.appInstallService/dev/install' '{"id":"com.ares.defaultName","ipkUrl":"/tmp/io.github.tojala1998.sleepfix_0.1.1_all.ipk","subscribe":true}'
+sh /tmp/lgc1-clean-wake/splashctl.sh install
+sh /var/lib/webosbrew/lgc1-branded-wake-splash/splashctl.sh apply
+sh /var/lib/webosbrew/lgc1-branded-wake-splash/splashctl.sh status
 ```
 
-Wait for the installer to report `SUCCESS` or `installed`. If the subscription
-keeps the terminal occupied, press **Ctrl+C after that success response**.
-Then launch:
+Put the TV in standby and wake it via the YouTube shortcut. The screen should stay black until the app appears. The original app lifecycle, hotkey mapping and power behavior are unchanged. Persistence is **off by default**; enable it only after visually confirming it works:
 
 ```sh
-luna-send -n 1 'luna://com.webos.service.applicationManager/launch' '{"id":"io.github.tojala1998.sleepfix"}'
+sh /var/lib/webosbrew/lgc1-branded-wake-splash/splashctl.sh enable-boot
 ```
 
-Installing or opening the app reads status; it does not automatically restart
-the timer service. Turn off active sleep timers and recordings before using
-Start or Stop; restarting the reservation agent can reset pending events.
-The UI asks for this confirmation when a restart is needed.
-
-The installation method is documented in the
-[webOSBrew command reference](https://www.webosbrew.org/pages/commands-cheatsheet.html).
-Do not reinstall the official LG Developer Mode app for this workflow.
-
-## Existing standalone SleepFix 1.0.0 installation
-
-The app recognizes the existing state at:
-
-```text
-/var/lib/webosbrew/lgc1-sleepfix
-```
-
-It reuses the known, hash-checked payload and original reference. After first
-launch, select **Start service once**, even if the readout already says
-Running. An already-correct patched process is not restarted; the controller
-verifies it and changes the existing boot symlink to point into this app.
-
-Until that adoption, the older standalone installation remains independently
-configured. The UI labels it as an existing SSH setup. The new controller
-does not delete the old installer, documentation, or reference files.
-
-After adoption, use this app or its packaged controller for changes. The old
-standalone controller does not recognize the new app-owned hook target.
-
-## SSH status and recovery
-
-Read status:
+A full reboot may be needed to clear an earlier loaded CoverUI component. **Rollback:**
 
 ```sh
-sh /media/developer/apps/usr/palm/applications/io.github.tojala1998.sleepfix/bin/sleepfixctl.sh status
+sh /var/lib/webosbrew/lgc1-branded-wake-splash/splashctl.sh rollback
 ```
 
-Apply or stop for the current session, after cancelling timers/recordings:
+The Clean Wake 1.2 installer recognizes and migrates older v1.0/v1.1 controllers at the same install path. If it refuses an overlay, stop and inspect rather than forcing it.
+
+## SleepFix — stage, test, persist
+
+First, **cancel any active sleep timers** and avoid recordings or imminent scheduled TV events: restarting the reservation agent can reset them.
 
 ```sh
-sh /media/developer/apps/usr/palm/applications/io.github.tojala1998.sleepfix/bin/sleepfixctl.sh start --timers-off
-sh /media/developer/apps/usr/palm/applications/io.github.tojala1998.sleepfix/bin/sleepfixctl.sh stop --timers-off
+sh /tmp/lgc1-sleepfix-1.0.0/install.sh
+sh /var/lib/webosbrew/lgc1-sleepfix/sleepfixctl.sh check
 ```
 
-Choose one command; do not run both as a setup sequence.
+Staging builds the four-byte patch from the **owner's TV** and verifies both original and patched checksums. Staging alone does not change a mount, restart a daemon, or install a boot hook. The exact supported original is SHA-256 `6bee2e9fbe9836addede0a3f2e33342fb1914ff5f1793d2bffa030bfc0e38330`.
 
-To disable startup and restore the original service together:
+To run a temporary test:
 
 ```sh
-sh /media/developer/apps/usr/palm/applications/io.github.tojala1998.sleepfix/bin/sleepfixctl.sh rollback
+sh /var/lib/webosbrew/lgc1-sleepfix/sleepfixctl.sh test --timers-off
+sh /var/lib/webosbrew/lgc1-sleepfix/sleepfixctl.sh status
 ```
 
-Logs:
+With media playing, set a **new** two-minute native sleep timer and select LG's **Screen Off**. Verify the warning does not light up the OLED, audio continues, and the timer still powers down the TV. `--timers-off` acknowledges that you manually cleared timers; it does not cancel them for you.
+
+**Only after the real-TV test succeeds**, enable automatic reapply after full boots:
 
 ```sh
-tail -n 80 /var/lib/webosbrew/lgc1-sleepfix/deploy.log
-tail -n 60 /var/lib/webosbrew/lgc1-sleepfix/boot-output.log
+sh /var/lib/webosbrew/lgc1-sleepfix/sleepfixctl.sh enable --tested --timers-off
 ```
 
-SSH can become available before Homebrew's startup scripts finish. A brief
-stock-running state after a reboot is expected; wait for the running patched
-hash and owned overlay rather than treating the boot preference as success.
-
-## Removal
-
-In the app, turn **Launch at boot off**, then **Stop service**. Remove SleepFix
-normally from the TV's app list.
-
-The boot hook is a symlink into the app. Once the app has adopted the hook,
-removing the app makes that hook unusable. An already-running overlay can
-remain active until stopped or until a full reboot. Writable state and logs
-are retained; they are not an independently executing startup mechanism.
-
-If the app was removed while running, a full reboot removes the temporary
-overlay. Do not try to rewrite `/usr/sbin/tv-reservation-agent`.
-
-## Build and test
-
-Node.js 20 or newer and Python 3 are needed on the development computer.
-The TV itself needs neither Node dependencies nor Python for this app.
+Then reboot and re-check status and timer behavior. The installer refuses an existing installation rather than replacing an executable that could be in use. **Rollback:**
 
 ```sh
-npm ci --ignore-scripts
-npm run check
-python3 -m unittest discover -s tests -v
-node tests/test_ui.js
-npm run build
+sh /var/lib/webosbrew/lgc1-sleepfix/sleepfixctl.sh rollback
 ```
 
-On Windows, use `python` instead of `python3` if that is the installed command.
-The build uses pinned official `@webos-tools/cli` 3.2.6. Outputs are placed in
-`dist/`: IPK, release manifest, and checksum. Application scripts are kept
-readable. The LG CLI may print its newer `requiredACG` advisory; this app uses
-Homebrew Channel's root-public service interface on the targeted rooted TV.
+The rollback disables the owned startup hook, unmounts the verified override and reloads the stock agent. Do **not** delete staged files while the override may still be mounted. A full reboot generally clears temporary mounts, but is not a guaranteed recovery path.
 
-Controller tests use synthetic data, mocked services, and mock mounts in a
-temporary directory. They never control a development machine's actual
-systemd services. There are no environment-variable bypasses in the production
-controller. UI tests use a simulated DOM and native bridge; see
-[validation](docs/VALIDATION.md) for their limits and the TV test list.
+## Source and testing
 
-Open `app/index.html?preview=1` in a browser for an explicitly labeled mock
-preview. Opening it without that query shows that the TV bridge is missing.
-Preview mode never calls Homebrew Channel.
+- The original Clean Wake **1.2** patch generator and `splashctl.sh` are preserved from the on-TV-tested package.
+- The original SleepFix **1.0.0** controller and boot hook are preserved; for public, source-only distribution, `install.sh` now builds the same verified payload from the TV instead of shipping LG binaries.
+- Offline checks verify shell syntax, builder rejection of wrong input, and that the generated binary is byte-for-byte identical to the original tested four-byte patch. Offline checks cannot validate behavior on every TV or firmware.
+- The [SleepFix technical analysis](lgc1-sleepfix-1.0.0/ANALYSIS.md) and [patch manifest](lgc1-sleepfix-1.0.0/manifest.json) identify the precise patch scope and target hashes.
 
-## Store submission
-
-The target is [webosbrew/apps-repo](https://github.com/webosbrew/apps-repo).
-Prepared files are in `submission/`. The proposed source repository is
-`https://github.com/tojala1998/SleepFix`; it has not been published by this
-build. Change the URL consistently if another repository name is chosen.
-
-Before filing the PR: complete the physical-TV GUI tests, have a human
-developer review the generated code, publish the source and a release, and
-verify the public IPK/manifest/icon links. Record AI assistance honestly.
-The store's [publishing rules](https://www.webosbrew.org/develop/guides/publishing/rules/)
-require human review/testing and a real TV test. The earlier shell-patch test
-does not substitute for testing this GUI package.
-
-Our own code is MIT-licensed. Homebrew Channel and LG's CLI are separate
-projects; their source and libraries are not bundled in the installed app.
-
-## TV display fix in 0.1.1
-
-The first GUI build (0.1.0) was confirmed to appear mostly black, with tiny
-default-styled cyan buttons on an LG C1. The IPK contained its CSS and JS,
-but those resources apparently did not apply under the packaged webOS file
-origin. This is consistent with an overly restrictive `self` CSP and LG's
-file-origin handling; the exact browser console diagnostic was unavailable.
-
-Version 0.1.1 simplifies the 10-foot interface and **embeds CSS and classic
-JavaScript into the packaged `index.html` at build time**. The editable
-`app/style.css` and `app/app.js` remain separate in the source tree.
-The packaged HTML uses an explicit inline-only CSP and no remote assets.
-This also avoids dependence on CSS/JS resource URLs under the TV's `file://`
-app origin.
-
-The revised GUI is browser-simulated at 1920×1080 and 1280×720, but still
-requires verification on a physical C1 before store submission. The binary
-patch, privilege checks, and boot controller are unchanged in this release.
+**Use at your own risk.** These independent projects are unaffiliated with LG or the webOS Homebrew Store.

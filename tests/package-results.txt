@@ -1,6 +1,0 @@
-Official LG CLI build/inspection: PASS
-Official release and store schemas: PASS
-Embedded source and executable permissions: PASS
-No ELF or LG firmware executables in IPK: PASS
-IPK SHA256: 33365771389d1f056ac692ee7a485f25a816f09b3f379e4ebbcec6fb4092808c
-IPK bytes: 38994

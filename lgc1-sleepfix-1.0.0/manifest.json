@@ -1,0 +1,42 @@
+{
+  "architecture": "ARMv7 Thumb-2, ELF32 little-endian PIE, EABI5 soft-float",
+  "elf_flags": "0x5000200",
+  "patch_virtual_address": "0x3099e",
+  "symbols": {
+    "_ZN10SleepTimer16_checkSleepTimerEPv": {
+      "value": "0x307cd",
+      "size": 792
+    },
+    "_ZN19ReservationPowerMgr19requestTurnOnScreenEv": {
+      "value": "0x7e11d",
+      "size": 240
+    },
+    "_ZN10SleepTimer27_createSleepTimerAlertPopupEv": {
+      "value": "0x2fb35",
+      "size": 372
+    },
+    "_ZN10SleepTimer21_startSleepTimerEventEv": {
+      "value": "0x30709",
+      "size": 196
+    },
+    "_ZN10SleepTimer16_requestPowerOffEv": {
+      "value": "0x30009",
+      "size": 164
+    }
+  },
+  "relocation_overlap": false,
+  "package_version": "1.0.0",
+  "size": 953888,
+  "original_sha256": "6bee2e9fbe9836addede0a3f2e33342fb1914ff5f1793d2bffa030bfc0e38330",
+  "patched_sha256": "23bb2fe19594d1b42d4dfdbcf3d40b675f225ac15990b9d2a5cb2c0b571cd40f",
+  "patch_file_offset": "0x3099e",
+  "before": "4d f0 bd fb",
+  "after": "00 bf 00 bf",
+  "changed_byte_offsets": [
+    "0x3099e",
+    "0x3099f",
+    "0x309a0",
+    "0x309a1"
+  ],
+  "tv_runtime_tested": true
+}
