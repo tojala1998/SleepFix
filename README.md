@@ -3,7 +3,7 @@
 A small Homebrew app that keeps a supported LG TV's sleep-timer warning from
 requesting Screen On while audio continues with **Screen Off** enabled.
 
-**Version 0.1.0 is a first GUI test build.** The underlying four-byte patch and
+**Version 0.1.1 is a first GUI test build.** The underlying four-byte patch and
 its automatic boot application were tested on Tyler's LG C1. The new IPK's
 installation, remote control, and Homebrew Channel integration still need a
 physical-TV test before this app is submitted to the store.
@@ -53,20 +53,19 @@ needed while using the app, and the app sends no telemetry.
 
 ## Install over SSH from Windows
 
-Download `io.github.tojala1998.sleepfix_0.1.0_all.ipk`, then run in PowerShell.
-Replace `TV_IP` with your TV's local IP address:
+Download `io.github.tojala1998.sleepfix_0.1.1_all.ipk`, then run in PowerShell:
 
 ```powershell
 New-Item -ItemType Directory -Force "C:\Tools\LG-C1\SleepFix" | Out-Null
-Copy-Item "$env:USERPROFILE\Downloads\io.github.tojala1998.sleepfix_0.1.0_all.ipk" "C:\Tools\LG-C1\SleepFix\"
-scp "C:\Tools\LG-C1\SleepFix\io.github.tojala1998.sleepfix_0.1.0_all.ipk" root@TV_IP:/tmp/
-ssh root@TV_IP
+Copy-Item "$env:USERPROFILE\Downloads\io.github.tojala1998.sleepfix_0.1.1_all.ipk" "C:\Tools\LG-C1\SleepFix\"
+scp "C:\Tools\LG-C1\SleepFix\io.github.tojala1998.sleepfix_0.1.1_all.ipk" root@192.168.0.166:/tmp/
+ssh root@192.168.0.166
 ```
 
 At the TV's `root@LGwebOSTV` prompt:
 
 ```sh
-luna-send -i -f 'luna://com.webos.appInstallService/dev/install' '{"id":"com.ares.defaultName","ipkUrl":"/tmp/io.github.tojala1998.sleepfix_0.1.0_all.ipk","subscribe":true}'
+luna-send -i -f 'luna://com.webos.appInstallService/dev/install' '{"id":"com.ares.defaultName","ipkUrl":"/tmp/io.github.tojala1998.sleepfix_0.1.1_all.ipk","subscribe":true}'
 ```
 
 Wait for the installer to report `SUCCESS` or `installed`. If the subscription
@@ -155,9 +154,8 @@ overlay. Do not try to rewrite `/usr/sbin/tv-reservation-agent`.
 
 ## Build and test
 
-Run the complete build and test workflow on Linux or in WSL with Node.js 20
-or newer, Python 3, and dash. The TV itself needs neither Node dependencies
-nor Python for this app.
+Node.js 20 or newer and Python 3 are needed on the development computer.
+The TV itself needs neither Node dependencies nor Python for this app.
 
 ```sh
 npm ci --ignore-scripts
@@ -167,8 +165,7 @@ node tests/test_ui.js
 npm run build
 ```
 
-Native Windows can use the installation instructions above. The controller
-test harness requires Unix facilities such as `fcntl` and `/bin/dash`.
+On Windows, use `python` instead of `python3` if that is the installed command.
 The build uses pinned official `@webos-tools/cli` 3.2.6. Outputs are placed in
 `dist/`: IPK, release manifest, and checksum. Application scripts are kept
 readable. The LG CLI may print its newer `requiredACG` advisory; this app uses
@@ -187,12 +184,12 @@ Preview mode never calls Homebrew Channel.
 ## Store submission
 
 The target is [webosbrew/apps-repo](https://github.com/webosbrew/apps-repo).
-Source is available at [tojala1998/SleepFix](https://github.com/tojala1998/SleepFix).
-Prepared store-registration files are in `submission/`. The application has
-not yet been submitted to `webosbrew/apps-repo`.
+Prepared files are in `submission/`. The proposed source repository is
+`https://github.com/tojala1998/SleepFix`; it has not been published by this
+build. Change the URL consistently if another repository name is chosen.
 
 Before filing the PR: complete the physical-TV GUI tests, have a human
-developer review the generated code, publish a release, and
+developer review the generated code, publish the source and a release, and
 verify the public IPK/manifest/icon links. Record AI assistance honestly.
 The store's [publishing rules](https://www.webosbrew.org/develop/guides/publishing/rules/)
 require human review/testing and a real TV test. The earlier shell-patch test
@@ -200,3 +197,22 @@ does not substitute for testing this GUI package.
 
 Our own code is MIT-licensed. Homebrew Channel and LG's CLI are separate
 projects; their source and libraries are not bundled in the installed app.
+
+## TV display fix in 0.1.1
+
+The first GUI build (0.1.0) was confirmed to appear mostly black, with tiny
+default-styled cyan buttons on an LG C1. The IPK contained its CSS and JS,
+but those resources apparently did not apply under the packaged webOS file
+origin. This is consistent with an overly restrictive `self` CSP and LG's
+file-origin handling; the exact browser console diagnostic was unavailable.
+
+Version 0.1.1 simplifies the 10-foot interface and **embeds CSS and classic
+JavaScript into the packaged `index.html` at build time**. The editable
+`app/style.css` and `app/app.js` remain separate in the source tree.
+The packaged HTML uses an explicit inline-only CSP and no remote assets.
+This also avoids dependence on CSS/JS resource URLs under the TV's `file://`
+app origin.
+
+The revised GUI is browser-simulated at 1920×1080 and 1280×720, but still
+requires verification on a physical C1 before store submission. The binary
+patch, privilege checks, and boot controller are unchanged in this release.

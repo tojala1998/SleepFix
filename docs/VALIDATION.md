@@ -77,7 +77,11 @@ are DOM/bridge tests, not a screenshot or an emulator run.
 
 ## Store submission status
 
-The source repository is public. The registration YAML and PR draft are
-prepared; no Homebrew Store pull request has been submitted. A public release
-with its IPK and manifest is still pending. Physical-TV GUI testing, human
-review, and verification of published release links remain required.
+The registration YAML and PR draft are prepared. No public repository, release,
+or pull request has been created by this build. Proposed GitHub URLs in the
+release manifest are publication targets, not evidence that those resources
+currently exist. Public link validation and human/TV review remain required.
+
+## 0.1.1 display regression
+
+The 0.1.0 IPK was visually confirmed on a real LG C1 to render essentially unstyled, with very small browser-default controls and unreadable dark text. The precise console failure was not captured. The 0.1.1 build inlines its CSS and classic JS into the packaged HTML, uses an inline-only policy, and keeps the UI static/offline. Browser-simulated visual checks passed at both 1920×1080 and 1280×720. Physical-TV visual and control testing of 0.1.1 remains pending.

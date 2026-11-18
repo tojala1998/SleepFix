@@ -16,12 +16,38 @@ if (info.id !== 'io.github.tojala1998.sleepfix' || !/^\d+\.\d+\.\d+$/.test(info.
   throw new Error('Unexpected application identity/version.');
 }
 fs.mkdirSync(out, {recursive: true});
-fs.copyFileSync(path.join(root, 'LICENSE'), path.join(app, 'LICENSE'));
+// Package from an isolated staging directory, keeping editable UI sources separate.
+// webOS TV uses a file:// app origin; CSP 'self' on linked local resources can be
+// unreliable there. Embed both app-owned assets in index.html at build time.
+const staging = path.join(out, '.app-staging');
+fs.rmSync(staging, {recursive: true, force: true});
+fs.cpSync(app, staging, {recursive: true});
+fs.copyFileSync(path.join(root, 'LICENSE'), path.join(staging, 'LICENSE'));
 for (const filename of ['sleepfixctl.sh', 'boot-hook.sh']) {
-  fs.chmodSync(path.join(app, 'bin', filename), 0o755);
+  fs.chmodSync(path.join(staging, 'bin', filename), 0o755);
 }
+const css = fs.readFileSync(path.join(staging, 'style.css'), 'utf8');
+const js = fs.readFileSync(path.join(staging, 'app.js'), 'utf8');
+if (/<\/style/i.test(css) || /<\/script/i.test(js)) {
+  throw new Error('Inline assets include an unsafe HTML closing tag.');
+}
+let page = fs.readFileSync(path.join(staging, 'index.html'), 'utf8');
+if (!page.includes('<link rel="stylesheet" href="style.css">') || !page.includes('<script src="app.js"></script>')) {
+  throw new Error('Web UI asset references changed; cannot safely generate embedded package.');
+}
+page = page.replace('<link rel="stylesheet" href="style.css">', '<style>\n' + css + '\n</style>');
+page = page.replace('<script src="app.js"></script>', '<script>\n' + js + '\n</script>');
+page = page.replace('<title>SleepFix</title>',
+  '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; script-src \'unsafe-inline\'; img-src data:; connect-src \'none\'; object-src \'none\'; base-uri \'none\'">\n  <title>SleepFix</title>');
+fs.writeFileSync(path.join(staging, 'index.html'), page);
+fs.rmSync(path.join(staging, 'app.js'));
+fs.rmSync(path.join(staging, 'style.css'));
 const cli = require.resolve('@webos-tools/cli/bin/ares-package.js');
-cp.execFileSync(process.execPath, [cli, '--no-minify', '--outdir', out, app], {cwd: root, stdio: 'inherit'});
+try {
+  cp.execFileSync(process.execPath, [cli, '--no-minify', '--outdir', out, staging], {cwd: root, stdio: 'inherit'});
+} finally {
+  fs.rmSync(staging, {recursive: true, force: true});
+}
 const ipkName = info.id + '_' + info.version + '_all.ipk';
 const bytes = fs.readFileSync(path.join(out, ipkName));
 const digest = crypto.createHash('sha256').update(bytes).digest('hex');

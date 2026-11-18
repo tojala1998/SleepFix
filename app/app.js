@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    var APP_VERSION = '0.1.0';
+    var APP_VERSION = '0.1.1';
     var CONTROL = '/bin/sh /media/developer/apps/usr/palm/applications/io.github.tojala1998.sleepfix/bin/sleepfixctl.sh ';
     var COMMANDS = {
         status: CONTROL + 'status-json',
